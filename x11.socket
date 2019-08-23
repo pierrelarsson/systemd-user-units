@@ -1,0 +1,15 @@
+[Unit]
+Description=X11 socket
+AssertPathExists=!/tmp/.X%U-lock
+ConditionUser=!root
+
+[Socket]
+SocketMode=0600
+PassCredentials=yes
+ListenStream=/tmp/.X11-unix/X%U
+Environment=DISPLAY=:%U
+ExecStartPost=/usr/bin/systemctl --user import-environment DISPLAY
+
+[Install]
+WantedBy=sockets.target
+Also=xorg-x11.service

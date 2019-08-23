@@ -1,0 +1,6 @@
+[Unit]
+Description=Basic X11 Session
+BindsTo=graphical-session.target
+After=graphical-session-pre.target x11.socket
+Requires=basic.target window-manager.service
+Wants=x11-xrdb.service x11-xkbmap.service

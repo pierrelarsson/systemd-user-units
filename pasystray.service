@@ -1,0 +1,14 @@
+[Unit]
+Description=PulseAudio System Tray
+Documentation=man:pasystray(1)
+PartOf=graphical-session.target
+Requires=window-manager.service
+After=graphical-session-pre.target window-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/pasystray
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

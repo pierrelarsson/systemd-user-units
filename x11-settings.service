@@ -1,0 +1,9 @@
+[Unit]
+Description=X.Org X11 Settings
+BindsTo=graphical-session.target
+After=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=-/bin/sh --noprofile --norc %h/.Xsettings
+ExecStart=-/bin/sh --noprofile --norc %h/.Xsettings-%H

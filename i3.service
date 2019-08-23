@@ -1,0 +1,13 @@
+[Unit]
+Description=i3 window manager
+Documentation=man:i3(1)
+PartOf=graphical-session.target
+After=graphical-session-pre.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/i3
+Restart=on-failure
+
+[Install]
+Alias=window-manager.service

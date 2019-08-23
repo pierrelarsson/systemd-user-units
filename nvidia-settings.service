@@ -1,0 +1,12 @@
+[Unit]
+Description=NVIDIA Graphics Configuration
+Documentation=man:nvidia-settings(1)
+BindsTo=graphical-session.target
+After=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/nvidia-settings --verbose=all --load-config-only 
+
+[Install]
+WantedBy=graphical-session.target

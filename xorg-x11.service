@@ -1,0 +1,19 @@
+[Unit]
+Description=X.Org X11 Server
+Documentation=man:Xorg(1) man:Xserver(1)
+RefuseManualStart=yes
+AssertPathExists=!/tmp/.X%i-lock
+AssertFileIsExecutable=/usr/libexec/Xorg
+ConditionUser=!root
+Requires=x11.socket
+After=graphical-session-pre.target x11.socket
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sh -c "systemctl --user set-environment XDG_VTNR=$(grep --only-matching --extended-regexp '[0-9]+$' < /sys/class/tty/tty0/active)"
+ExecStart=/usr/libexec/Xorg ${DISPLAY} vt${XDG_VTNR} -nolisten tcp -verbose 3 -terminate -auth %h/.Xauthority
+ExecStartPost=/usr/bin/xhost +si:localuser:%u
+ExecStartPost=/usr/bin/xhost -local:
+
+[Install]
+Alias=x11.service

@@ -1,0 +1,14 @@
+[Unit]
+Description=NetworkManager System Tray
+Documentation=man:NM-APPLET(1)
+PartOf=graphical-session.target
+Requires=window-manager.service
+After=graphical-session-pre.target window-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/nm-applet
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

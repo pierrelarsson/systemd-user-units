@@ -1,0 +1,14 @@
+[Unit]
+Description=X11 Modifier Map
+Documentation=man:xmodmap(1)
+Conflicts=x11-xkbmap.service
+BindsTo=graphical-session.target
+After=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "if [ -r /etc/X11/Xmodmap ]; then /usr/bin/xmodmap /etc/X11/Xmodmap; fi"
+ExecStart=/bin/sh -c "if [ -r %h/.Xmodmap ]; then /usr/bin/xmodmap %h/.Xmodmap; fi"
+
+[Install]
+WantedBy=graphical-session.target

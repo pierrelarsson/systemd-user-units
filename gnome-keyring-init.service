@@ -1,0 +1,18 @@
+[Unit]
+Description=GNOME Keyring Initializer
+Documentation=man:gnome-keyring-daemon(1)
+AssertPathExists=%t/keyring/control
+Conflicts=gnome-keyring-daemon.service
+RefuseManualStart=yes
+
+[Service]
+Type=oneshot
+Environment=GNOME_KEYRING_CONTROL=%t/keyring
+Environment=SSH_AUTH_SOCK=%t/keyring/ssh
+ExecStart=/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
+ExecStartPost=/usr/bin/systemctl --user import-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
+ExecStopPost=/usr/bin/systemctl --user unset-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
+
+[Install]
+WantedBy=default.target
+Also=gnome-keyring-init.path

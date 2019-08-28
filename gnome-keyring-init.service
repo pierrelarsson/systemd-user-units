@@ -6,10 +6,10 @@ Conflicts=gnome-keyring-daemon.service
 RefuseManualStart=yes
 
 [Service]
-Type=oneshot
+Type=simple
 Environment=GNOME_KEYRING_CONTROL=%t/keyring
 Environment=SSH_AUTH_SOCK=%t/keyring/ssh
-ExecStart=/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
+ExecStart=/usr/bin/gnome-keyring-daemon --start --foreground --components=pkcs11,secrets,ssh
 ExecStartPost=/usr/bin/systemctl --user import-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
 ExecStopPost=/usr/bin/systemctl --user unset-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
 

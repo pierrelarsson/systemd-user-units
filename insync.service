@@ -1,0 +1,15 @@
+[Unit]
+Description=Insync
+Documentation=man:insync(1)
+PartOf=graphical-session.target
+After=graphical-session-pre.target window-manager.service
+
+[Service]
+Type=simple
+Environment=LC_TIME=C
+WorkingDirectory=/usr/lib/insync
+ExecStart=/usr/lib/insync/insync start --no-daemon
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

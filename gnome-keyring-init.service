@@ -14,5 +14,4 @@ ExecStartPost=/usr/bin/systemctl --user import-environment GNOME_KEYRING_CONTROL
 ExecStopPost=/usr/bin/systemctl --user unset-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
 
 [Install]
-WantedBy=default.target
 Also=gnome-keyring-init.path

@@ -1,0 +1,10 @@
+[Unit]
+Description=Requests renewal of the ticket-granting ticket
+Documentation=man:kinit(1)
+
+[Timer]
+OnActiveSec=30m
+OnUnitActiveSec=30m
+
+[Install]
+WantedBy=default.target

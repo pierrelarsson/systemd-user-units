@@ -1,0 +1,7 @@
+[Unit]
+Description=Requests renewal of the ticket-granting ticket
+Documentation=man:kinit(1)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/kinit -R

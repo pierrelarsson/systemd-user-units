@@ -12,4 +12,3 @@ ExecStartPost=/usr/bin/systemctl --user import-environment DISPLAY
 
 [Install]
 WantedBy=sockets.target
-Also=xorg-x11.service

@@ -17,3 +17,4 @@ ExecStartPost=/usr/bin/xhost -local:
 
 [Install]
 Alias=x11.service
+Also=x11.socket

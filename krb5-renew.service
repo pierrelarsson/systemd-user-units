@@ -5,3 +5,6 @@ Documentation=man:kinit(1)
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/kinit -R
+
+[Install]
+Also=krb5-renew.timer

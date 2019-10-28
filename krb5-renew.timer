@@ -3,8 +3,8 @@ Description=Requests renewal of the ticket-granting ticket
 Documentation=man:kinit(1)
 
 [Timer]
-OnActiveSec=30m
-OnUnitActiveSec=30m
+OnActiveSec=10m
+OnUnitActiveSec=10m
 
 [Install]
 WantedBy=default.target

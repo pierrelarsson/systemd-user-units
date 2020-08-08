@@ -1,0 +1,14 @@
+[Unit]
+Description=reStarting XTerm
+Documentation=man:xterm(1)
+PartOf=graphical-session.target
+After=graphical-session-pre.target window-manager.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h
+ExecStart=/usr/bin/xterm -name reXTerm
+Restart=always
+
+[Install]
+WantedBy=graphical-session.target

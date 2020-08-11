@@ -2,7 +2,7 @@
 Description=reStarting XTerm
 Documentation=man:xterm(1)
 PartOf=graphical-session.target
-After=graphical-session-pre.target window-manager.service
+After=graphical-session-pre.target x11-xrdb.service
 
 [Service]
 Type=simple

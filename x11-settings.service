@@ -7,3 +7,6 @@ After=graphical-session-pre.target
 Type=oneshot
 ExecStart=-/bin/sh --noprofile --norc %h/.Xsettings
 ExecStart=-/bin/sh --noprofile --norc %h/.Xsettings-%H
+
+[Install]
+WantedBy=graphical-session.target

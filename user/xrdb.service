@@ -1,0 +1,9 @@
+[Unit]
+Description=X11 Resource Database
+Documentation=man:xrdb(1)
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "if [ -r /etc/X11/Xresources ]; then /usr/bin/xrdb -nocpp -merge /etc/X11/Xresources; fi"
+ExecStart=/bin/sh -c "if [ -r %h/.Xresources ]; then /usr/bin/xrdb -merge %h/.Xresources; fi"

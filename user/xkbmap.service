@@ -1,0 +1,10 @@
+[Unit]
+Description=X11 KeyBoard Map
+Documentation=man:setxkbmap(1)
+Conflicts=xmodmap.service
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "if [ -r /etc/X11/Xkbmap ]; then /usr/bin/setxkbmap `cat /etc/X11/Xkbmap`; fi"
+ExecStart=/bin/sh -c "if [ -r %h/.Xkbmap ]; then /usr/bin/setxkbmap `cat %h/.Xkbmap`; fi"

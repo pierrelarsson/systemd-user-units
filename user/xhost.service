@@ -1,0 +1,9 @@
+[Unit]
+Description=Xhost server access control program
+Documentation=man:xhost(1)
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/xhost +si:localuser:%u
+ExecStart=/usr/bin/xhost -local:

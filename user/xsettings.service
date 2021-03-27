@@ -1,0 +1,12 @@
+[Unit]
+Description=X11 Window System Settings
+PartOf=graphical-session.target
+After=nvidia-settings.service
+
+[Service]
+Type=oneshot
+ExecStart=-/bin/sh --noprofile --norc %h/.Xsettings
+ExecStart=-/bin/sh --noprofile --norc %h/.Xsettings-%H
+
+[Install]
+WantedBy=graphical-session.target

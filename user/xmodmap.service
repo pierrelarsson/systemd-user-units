@@ -1,0 +1,10 @@
+[Unit]
+Description=X11 Modifier Map
+Documentation=man:xmodmap(1)
+Conflicts=xkbmap.service
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "if [ -r /etc/X11/Xmodmap ]; then /usr/bin/xmodmap /etc/X11/Xmodmap; fi"
+ExecStart=/bin/sh -c "if [ -r %h/.Xmodmap ]; then /usr/bin/xmodmap %h/.Xmodmap; fi"

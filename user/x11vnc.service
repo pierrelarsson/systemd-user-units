@@ -2,7 +2,6 @@
 Description=VNC server for the current X11 session
 Documentation=man:X11VNC(1)
 PartOf=graphical-session.target
-After=graphical-session-pre.target window-manager.service
 
 [Service]
 Type=simple

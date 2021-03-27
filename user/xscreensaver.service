@@ -2,14 +2,12 @@
 Description=XScreenSaver
 Documentation=man:xscreensaver(1)
 PartOf=graphical-session.target
-Wants=x11-xrdb.service
-After=graphical-session-pre.target x11-xrdb.service
+After=xrdb.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/xscreensaver -verbose -nosplash
+ExecStart=/usr/bin/xscreensaver -nosplash
 Restart=on-failure
 
 [Install]
-WantedBy=graphical-session.target
 Alias=x11-screensaver.service

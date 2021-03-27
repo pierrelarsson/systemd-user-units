@@ -2,13 +2,15 @@
 Description=reStarting XTerm
 Documentation=man:xterm(1)
 PartOf=graphical-session.target
-After=graphical-session-pre.target x11-xrdb.service
+After=xrdb.service
 
 [Service]
 Type=simple
 WorkingDirectory=%h
 ExecStart=/usr/bin/xterm -name reXTerm
 Restart=always
+RestartPreventExitStatus=15
+SuccessExitStatus=15
 
 [Install]
 WantedBy=graphical-session.target

@@ -1,8 +1,7 @@
 [Unit]
 Description=NVIDIA Graphics Configuration
 Documentation=man:nvidia-settings(1)
-BindsTo=graphical-session.target
-After=graphical-session-pre.target
+PartOf=graphical-session.target
 
 [Service]
 Type=oneshot

@@ -2,8 +2,7 @@
 Description=PulseAudio System Tray
 Documentation=man:pasystray(1)
 PartOf=graphical-session.target
-Requires=window-manager.service
-After=graphical-session-pre.target window-manager.service
+After=window-manager.service
 
 [Service]
 Type=simple

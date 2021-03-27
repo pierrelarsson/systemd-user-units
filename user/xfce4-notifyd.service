@@ -1,7 +1,6 @@
 [Unit]
 Description=XFCE notifications service
 PartOf=graphical-session.target
-After=graphical-session-pre.target
 
 [Service]
 Type=dbus
@@ -9,5 +8,4 @@ BusName=org.freedesktop.Notifications
 ExecStart=/usr/lib64/xfce4/notifyd/xfce4-notifyd
 
 [Install]
-WantedBy=graphical-session.target
-Alias=x11-notifier.service
+Alias=x11-notifications.service

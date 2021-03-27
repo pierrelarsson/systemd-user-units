@@ -1,0 +1,21 @@
+[Unit]
+Description=GNOME keyring via PAM
+Documentation=man:gnome-keyring-daemon(1)
+AssertPathExists=%t/keyring/control
+RefuseManualStart=yes
+
+[Service]
+Type=oneshot
+Delegate=yes
+RemainAfterExit=yes
+PIDFile=%t/keyring/pid
+Environment=GNOME_KEYRING_CONTROL=%t/keyring
+Environment=SSH_AUTH_SOCK=%t/keyring/ssh
+ExecStart=/usr/bin/gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
+ExecStartPost=/bin/sh -c "busctl --user call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetConnectionUnixProcessID s org.gnome.keyring | awk '{print $2}' > %t/keyring/pid"
+ExecStartPost=/bin/sh -c "busctl --user call org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager AttachProcessesToUnit 'ssau' 'gnome-keyring-pam.service' '' 1 $(<%t/keyring/pid)"
+ExecStartPost=/usr/bin/systemctl --user import-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
+ExecStopPost=/usr/bin/systemctl --user unset-environment GNOME_KEYRING_CONTROL SSH_AUTH_SOCK
+
+[Install]
+Also=gnome-keyring-pam.path

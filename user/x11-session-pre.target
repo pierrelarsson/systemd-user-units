@@ -1,0 +1,5 @@
+[Unit]
+Description=X11 Window System Pre-Session
+
+BindsTo=graphical-session-pre.target
+Before=graphical-session-pre.target

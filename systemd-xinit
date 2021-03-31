@@ -1,0 +1,148 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import socket
+import signal
+import time
+import fcntl
+from gi.repository import Gio, GLib
+
+# pure python implementation of systemd/sd_journal_stream_fd
+def sd_journal_stream_fd(identifier, priority=6, level_prefix=False):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM|socket.SOCK_CLOEXEC)
+    s.connect("/run/systemd/journal/stdout")
+    s.shutdown(socket.SHUT_RD)
+    s.sendall("{0}\n\n{1:n}\n{2:b}\n0\n0\n0\n".format(
+        identifier,
+        priority,
+        bool(level_prefix)).encode())
+    return s
+
+# pure python implementation of systemd/sd_notify
+def sd_notify(unset_environment, state):
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM|socket.SOCK_CLOEXEC)
+        s.connect(os.environ.get("NOTIFY_SOCKET", "/run/systemd/notify"))
+        s.sendall("{0}\n".format(state).encode())
+        s.shutdown(socket.SHUT_RDWR)
+        s.close()
+    finally:
+        if unset_environment and "NOTIFY_SOCKET" in os.environ:
+            del os.environ["NOTIFY_SOCKET"]
+
+# returns a systemd dbus proxy object for the system or user session
+def systemd_dbus_proxy(user=True):
+    bustype = Gio.BusType.SESSION if user else Gio.BusType.SYSTEM
+    dbus = Gio.bus_get_sync(bustype, None)
+    return Gio.DBusProxy.new_sync(dbus, Gio.DBusProxyFlags.NONE, None,
+                                  "org.freedesktop.systemd1",
+                                  "/org/freedesktop/systemd1",
+                                  "org.freedesktop.systemd1.Manager", None)
+
+# bare minimum X client implementation, returns the socket after
+# reading the first CARD8 (success) in the xConnSetupPrefix reply
+def xclient(display):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.setblocking(True)
+    s.connect("/tmp/.X11-unix/X{0:d}".format(display))
+    x_conn_client_prefix = b'\x6c\x00\x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    s.sendall(x_conn_client_prefix)
+    if not bool(s.recv(1)):
+        raise ConnectionError("Erroneous response from Xserver")
+    return s
+
+# the X initialization part started by the transient systemd unit
+def xinit(timeout=10):
+    dbus = systemd_dbus_proxy()
+    # read display number from stdin (passed by Xserver -displayfd argument)
+    display = int(sys.stdin.readline())
+    x = xclient(display)
+    # import the DISPLAY variable into the systemd user session
+    variant = GLib.Variant("(as)", (["DISPLAY=:{0:d}".format(display)],))
+    dbus.call_sync("SetEnvironment", variant, Gio.DBusProxyFlags.NONE, -1, None)
+    # notify systemd to carry on with ExecStartPost:s
+    sd_notify(0, "READY=1")
+    # allow some time for the session to be brought up.
+    # favorable when the Xserver is started with the -terminate argument
+    # since some initial services rapidly connects/disconnects,
+    # and hence would cause the Xserver to terminate
+    time.sleep(timeout)
+    x.shutdown(socket.SHUT_RDWR)
+    x.close()
+
+# replace the current process with Xserver
+def xserver(displayfd, binary="/usr/libexec/Xorg"):
+    basename = os.path.basename(binary)
+    # make sure that the displayfd will be passed when calling exec
+    fcntl.fcntl(displayfd, fcntl.F_SETFD, 0)
+    # connect stdout/stderr to the systemd journal
+    journal = sd_journal_stream_fd( basename )
+    os.dup2(journal.fileno(), 1)
+    os.dup2(journal.fileno(), 2)
+    os.execv(binary, [basename,
+        "vt{0}".format(os.environ['XDG_VTNR']),
+        "-nolisten", "tcp",
+        "-verbose", "3",
+        "-novtswitch",
+        "-terminate",
+        "-keeptty",
+        "-displayfd", str(displayfd),
+        "-auth", "{0}/.Xauthority".format(os.environ['HOME'])])
+
+# create a transient systemd unit, with stdin connected to displayfd/Xserver
+# this is basically what systemd-run does, but which doesn't support passing
+# only a single/choosen file descriptor withouth blocking
+def xinit_unit(stdin, xserverpid=None, timeout=10):
+    if not xserverpid:
+        xserverpid=os.getpid()
+    dbus = systemd_dbus_proxy()
+    session = os.environ.get("XDG_SESSION_DESKTOP", "x11")
+    properties = [
+        ("Description",         GLib.Variant("s", "X Window System Initializer")),
+        ("CollectMode",         GLib.Variant("s", "inactive-or-failed")),
+        ("TimeoutStartUSec",    GLib.Variant("t", timeout*1000000)),
+        ("Type",                GLib.Variant("s", "notify")),
+        ("RemainAfterExit",     GLib.Variant("b", False)),
+        ("Restart",             GLib.Variant("s", "no")),
+        ("Environment",         GLib.Variant("as", [
+            "XSERVERPID={0}".format(xserverpid) ])),
+        ("ExecStart",           GLib.Variant("a(sasb)", [
+            (os.path.realpath(__file__), [
+                os.path.realpath(__file__)], False)
+            ])),
+        ("ExecStartPost",       GLib.Variant("a(sasb)", [
+            ("/usr/bin/systemctl", [
+                "/usr/bin/systemctl",
+                "--user",
+                "start",
+                "{0}-session-pre.target".format(session)], True),
+            ("/usr/bin/systemctl", [
+                "/usr/bin/systemctl",
+                "--user",
+                "start",
+                "{0}-session.target".format(session)], False)
+            ])),
+       ("StandardInputFileDescriptor", GLib.Variant("h", 0))]
+    variant = GLib.Variant("(ssa(sv)a(sa(sv)))",
+        ("xinit.service", "fail", properties, []))
+    dbus.call_with_unix_fd_list_sync(
+        "StartTransientUnit", variant,
+        Gio.DBusProxyFlags.NONE, -1,
+        Gio.UnixFDList.new_from_array([stdin]), None)
+
+if __name__ == "__main__":
+    if "XSERVERPID" in os.environ:
+        try:
+            xinit()
+        except:
+            e = sys.exc_info()
+            sys.stderr.write("{0}: {1}\n".format(e[0].__name__, e[1]))
+            sys.stderr.flush()
+            os.kill(int(os.environ["XSERVERPID"]), signal.SIGKILL)
+    elif "XDG_VTNR" in os.environ:
+        (fdr, fdw) = os.pipe()
+        xinit_unit(fdr)
+        xserver(fdw)
+    else:
+        sys.exit(1)

@@ -5,11 +5,16 @@ Units, (as well as scripts) which try to align to the somewhat limited documenta
 These will most likely need a revamp when fedora switches to systemd >= 247.
 
 ## Flow
-I've spent alot of time trying to circumvent the limitations of systemd in combination with Xorg due to the descissions taken in/from https://lists.x.org/archives/xorg-devel/2014-February/040476.html, in combination with systemd transitioning to cgroup v2, where the user does not own their login session (scope). Hence this was the most clean/systemd-alike approach i could think of:
+I've spent alot of time trying to circumvent the limitations of systemd in combination with Xorg/Xserver due to the
+descissions taken since https://lists.x.org/archives/xorg-devel/2014-February/040476.html, in combination with systemd
+transitioning to cgroup v2 (where users does not own their login session (scope)).
+Hence this was the most logic/simple/adherence solution I ended up with.
 
-1. systemd-xinit is executed, preferably through aliasing *sysx* in your *.<sh>rc*-file to
-   ''' alias sysx="exec systemd-xinit" '''
-   prefixing the command with exec will prevent returning to console when terminating, which can be considered a __BIG__ security issue.
+1. systemd-xinit is executed, preferably through aliasing *sysx* in your *.[shofchoice]rc*-file by eg.
+'''
+alias sysx="exec /usr/local/lib/systemd/systemd-xinit"
+'''
+It might be wise to prefix the command with "exec", to reduce the security issues due to the Xserver beeing terminated.
 
 2. a. a transient systemd unit (xinit.service) will be created, which will be picked up in step (3).
    b. the process will then exec/replace itself with the xserver executable,

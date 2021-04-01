@@ -1,33 +1,34 @@
 # systemd-user-units
+systemd **user** units and scripts which try to adhere to the somewhat limited design/guidelines regarding user units.
 
-# systemd-xinit
-Units, (as well as scripts) which try to align to the somewhat limited documentation regarding systemd __user__ units.
-These will most likely need a revamp when fedora switches to systemd >= 247.
+## installation
+```
+git clone https://github.com/pierrelarsson/systemd-user-units.git /usr/local/lib/systemd
+```
 
-## Flow
-I've spent alot of time trying to circumvent the limitations of systemd in combination with Xorg/Xserver due to the
-descissions taken since https://lists.x.org/archives/xorg-devel/2014-February/040476.html, in combination with systemd
-transitioning to cgroup v2 (where users does not own their login session (scope)).
-Hence this was the most logic/simple/adherence solution I ended up with.
+### systemd-xinit
+systemd-xinit implements what *startx|xinit* does, but through/for systemd.
+it will create a transient *xinit.service* unit, which will wait for the Xserver to report the acquired display-number (Xserver -displayfd argument).
+thereafter it will call *exec()* to replace itself with the Xserver-binary.
+when the transient *xinit.service* unit receives the display-number it will try to establish a connection to the Xserver to validate connectivity as well to keep Xserver from terminating or resetting for *timeout* (default 10) seconds.
+the *[DISPLAY]* variable will then be set/imported into the systemd user instance, followed by ExecStartPost(s) to serially start the *[XDG_SESSION_DESKTOP]*-session-pre.target and *[XDG_SESSION_DESKTOP]*-session.target
 
-1. systemd-xinit is executed, preferably through aliasing *sysx* in your *.[shofchoice]rc*-file by eg.
-'''
-alias sysx="exec /usr/local/lib/systemd/systemd-xinit"
-'''
-It might be wise to prefix the command with "exec", to reduce the security issues due to the Xserver beeing terminated.
+#### setup
+make sure to set your desired graphical session via the *XDG_SESSION_DESKTOP* environment variable. eg.
+```
+echo XDG_SESSION_DESKTOP=x11 > ~/.config/environment.d/99-graphical-session.conf
+```
 
-2. a. a transient systemd unit (xinit.service) will be created, which will be picked up in step (3).
-   b. the process will then exec/replace itself with the xserver executable,
-      using the environment variable *XDG_VTNR* (passed by systemd on local tty's) as vt#.
-      this is required, since systemd/logind needs an active process in the current VT session to be respected as active,
-      but as well for the current Xorg process to be able to tie to an active user session (https://lists.x.org/archives/xorg-devel/2014-February/040476.html).
+#### xserver
+the script defaults to execute /usr/libexec/Xorg, which should be **non** SETUID (on at least Fedora systems).
 
-3. the transient unit will (re)-execute *systemd-xinit* again, but this time with the environment variable *XSERVERPID* set.
-   a. this causes the script to wait for an available/active display number on stdin (as defined by the -displayfd argument to Xserver).
-   b. it will then connect as a (bare minimum) xclient to the xserver to verify connectivity, as well to to keep the session alive while the session is brought up.
-   c. after a succefull connection to the xserver, we will signal systemd to carry on with the specified ExecStartPost ([XDG_SESSION_DESKTOP]-session-pre.target).
-   d. after [timeout] seconds, the simple xclient will disconnect causing the server to terminate if no application(s) has connected.
+#### trivia
+i'd prefered to implement this through socket activation, but due to the descissions taken in https://lists.x.org/archives/xorg-devel/2014-February/040476.html combined with systemd transitioning to cgroup v2 where users does not own their login session (scope), this is just not possible.
+however we're still required to have (at least) one process running in the session to be considered active (which will be the Xserver itself).
 
-4. everything should now be closed as expected when shutting down (eg. by issuing *systemctl --user stop graphical-session.target*)
-
-# WIP
+### x11-session-pre.target and x11-session.target
+generic targets, which will bind to graphical-session-pre and graphical-session respectively.
+it expects a service to beeing aliased as *window-manager.service*. as well as wanting *x11-notifications.service* and *x11-screensaver.service*, eg.
+```
+systemctl --user enable i3.service xscreensaver.service xfce4-notifyd.service
+```

@@ -1,9 +1,0 @@
-[Unit]
-Description=GNOME Keyring Initializer
-Documentation=man:gnome-keyring-daemon(1)
-
-[Path]
-PathExists=%t/keyring/control
-
-[Install]
-WantedBy=default.target

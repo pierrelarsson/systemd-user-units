@@ -1,5 +1,5 @@
 [Unit]
-Description=X11 Window System Settings
+Description=X11 user preference options
 PartOf=graphical-session.target
 After=nvidia-settings.service
 

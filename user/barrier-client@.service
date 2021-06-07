@@ -1,0 +1,13 @@
+[Unit]
+Description=Barrier client connection to %i
+PartOf=graphical-session.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/barrierc --no-daemon --no-restart --enable-crypto --debug NOTE %i
+RestartSec=1s
+Restart=always
+
+[Install]
+WantedBy=graphical-session.target

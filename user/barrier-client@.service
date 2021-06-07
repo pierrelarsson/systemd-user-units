@@ -2,6 +2,7 @@
 Description=Barrier client connection to %i
 PartOf=graphical-session.target
 After=network.target
+StartLimitIntervalSec=0
 
 [Service]
 Type=simple

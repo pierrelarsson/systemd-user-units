@@ -95,8 +95,7 @@ Oneshot service to update the X server resource database from /etc/X11/Xresource
 Extensible screen saver and screen locking framework.
 
 ### gnome-keyring-pam.path & gnome-keyring-pam.service
-Initialize a gnome-keyring-daemon started via PAM (pam_gnome_keyring.so).  
-Also migrates that process into the service cgroup (user.slice/user-$UID.slice/user@$UID.service/gnome-keyring-pam.service).
+deprecated since support has been added upstream
 
 ### gnome-keyring-daemon.service
-Manually start the gnome-keyring daemon. Be aware that you'll have to authenticate when using this.
+deprecated since support has been added upstream
